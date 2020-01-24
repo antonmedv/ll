@@ -1,20 +1,3 @@
-/* ll – small utility to list files in current directory.
-  .-.   .-.
-  | |   | |
-  | `--.| `--.
-  `----'`----'
-
-# Why?
-Because I wanted to display files in columns with git status.
-
-# Options or flags?
-No.
-
-# Alternatives?
-alias ll='ls -la'
-exa – https://github.com/ogham/exa
-*/
-
 package main
 
 import (
