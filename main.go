@@ -100,7 +100,7 @@ func ll(cwd string) {
 	}
 
 start:
-	// Let's try to fit everything in terminal width with this name columns.
+	// Let's try to fit everything in terminal width with this many columns.
 	// If we are not able to do it, decrease column number and goto start.
 	rows := int(math.Ceil(float64(len(files)) / float64(columns)))
 	names := make([][]string, columns)
