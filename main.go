@@ -53,6 +53,9 @@ func ll(cwd string) {
 	// We need terminal size to nicely fit on screen.
 	fd := int(os.Stdin.Fd())
 	width, height, err := terminal.GetSize(fd)
+	if err != nil {
+		width, height = 80, 60
+	}
 
 	// If it's possible to fit all files in one column on half of screen, just use one column.
 	// Otherwise let's squeeze listing in half of screen.
