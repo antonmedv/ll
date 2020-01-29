@@ -44,7 +44,8 @@ func ll(cwd string) {
 	// ReadDir already returns files and dirs sorted by filename.
 	files, err := ioutil.ReadDir(cwd)
 	if err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	if len(files) == 0 {
 		return
