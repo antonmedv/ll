@@ -1,10 +1,18 @@
   .-.   .-.
-  | |   | |  ll – small utility to list files in current directory.
+  | |   | |
   | `--.| `--.
   `----'`----'
 
+ll – a small utility to list files in the current directory.
+
 # Why?
 Because I wanted to display files in columns with git status.
+
+# Rationalize
+One entry per line for lots of files can't be fitted on a screen
+and requires scrolling. With the multi-columns layout, space can be
+used more efficiently. At the same time, git status information also
+often required. Which makes usage of colors perfect job.
 
 # Options or flags?
 No.
