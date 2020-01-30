@@ -17,6 +17,9 @@ often required. Which makes usage of colors perfect job.
 # Options or flags?
 No.
 
+# Screenshot
+https://medv.io/assets/ll.png
+
 # Alternatives?
 alias ll='ls -la'
 exa – https://github.com/ogham/exa
