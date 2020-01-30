@@ -81,12 +81,8 @@ func ll(cwd string) {
 			}
 			// gitStatus returns file names of modified files from repo root.
 			fullPath := filepath.Join(cwd, name)
-			if file.IsDir() {
-				fullPath += "/"
-			}
 			for path, mode := range status {
-				// Use HasPrefix instead of exact mach to highlight directories as well.
-				if HasPrefix(path, fullPath) {
+				if subPath(path, fullPath) {
 					if mode[0] == '?' || mode[1] == '?' {
 						modes[name] = untracked
 					} else if mode[0] == 'A' || mode[1] == 'A' {
@@ -157,6 +153,19 @@ start:
 		output[j] = Join(row, separator)
 	}
 	fmt.Println(Join(output, "\n"))
+}
+
+func subPath(path string, fullPath string) bool {
+	p := Split(path, "/")
+	for i, s := range Split(fullPath, "/") {
+		if i >= len(p) {
+			return false
+		}
+		if p[i] != s {
+			return false
+		}
+	}
+	return true
 }
 
 func gitRepo() (string, error) {
