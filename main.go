@@ -41,6 +41,8 @@ func main() {
 }
 
 func ll(cwd string) {
+	// Maybe it is and argument, so get absolute path.
+	cwd, _ = filepath.Abs(cwd)
 	// ReadDir already returns files and dirs sorted by filename.
 	files, err := ioutil.ReadDir(cwd)
 	if err != nil {
