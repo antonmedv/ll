@@ -10,25 +10,33 @@ import (
 	"os/exec"
 	"path/filepath"
 	. "strings"
+	"sync"
+	"time"
 )
 
 const (
 	modified  = "\033[1;34m%s\033[0m"
 	added     = "\033[0;32m%s\033[0m"
 	untracked = "\033[0;36m%s\033[0m"
+	bold      = "\033[1m%v\033[0m"
+)
+
+var (
+	spinner = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+	sizes   = []string{"B", "kB", "MB", "GB", "TB", "PB", "EB"}
+	base    = float64(1000)
 )
 
 func main() {
-	// We are going to list files in current directory, if no arguments.
-	if len(os.Args) > 1 {
+	if len(os.Args) == 2 {
+		ll(os.Args[1])
+		return
+	}
+
+	if len(os.Args) > 2 {
 		for i := 1; i < len(os.Args); i++ {
-			if len(os.Args) > 2 {
-				fmt.Printf("%v:\n", os.Args[i])
-				ll(os.Args[i])
-				fmt.Println()
-			} else {
-				ll(os.Args[i])
-			}
+			path, _ := filepath.Abs(os.Args[i])
+			printInfo(fileInfo(path), path)
 		}
 		return
 	}
@@ -43,6 +51,13 @@ func main() {
 func ll(cwd string) {
 	// Maybe it is and argument, so get absolute path.
 	cwd, _ = filepath.Abs(cwd)
+
+	// Is it a file?
+	if fi := fileInfo(cwd); !fi.IsDir() {
+		printInfo(fi, cwd)
+		return
+	}
+
 	// ReadDir already returns files and dirs sorted by filename.
 	files, err := ioutil.ReadDir(cwd)
 	if err != nil {
@@ -198,4 +213,73 @@ func gitStatus() map[string]string {
 		m[filepath.Join(repo, line[3:])] = line[:2]
 	}
 	return m
+}
+
+func printInfo(fi os.FileInfo, path string) {
+	name := fi.Name()
+	size := fi.Size()
+	if fi.IsDir() {
+		name += "/"
+		done := make(chan bool)
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			i, t := 0, time.Tick(100*time.Millisecond)
+			for {
+				select {
+				case <-t:
+					fmt.Printf("\r%v\t%v", spinner[i%len(spinner)], name)
+					i++
+				case <-done:
+					fmt.Print("\r")
+					return
+				}
+			}
+		}()
+		size, _ = dirSize(path)
+		done <- true
+		wg.Wait()
+	}
+	fmt.Printf("%v\t%v\n", toHuman(size), name)
+}
+
+func fileInfo(path string) os.FileInfo {
+	fi, err := os.Stat(path)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	return fi
+}
+
+func toHuman(s int64) string {
+	if s < 10 {
+		value := fmt.Sprintf(bold, s)
+		return fmt.Sprintf("  %v B", value)
+	}
+	e := math.Floor(math.Log(float64(s)) / math.Log(base))
+	suffix := sizes[int(e)]
+	val := math.Floor(float64(s)/math.Pow(base, e)*10+0.5) / 10
+	f := "%3.0f"
+	if val < 10 {
+		f = "%3.1f"
+	}
+
+	value := fmt.Sprintf(bold, fmt.Sprintf(f, val))
+	return fmt.Sprintf("%v %v", value, suffix)
+}
+
+func dirSize(path string) (int64, error) {
+	var size int64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	return size, err
 }
